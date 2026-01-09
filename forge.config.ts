@@ -38,7 +38,6 @@ const config: ForgeConfig = {
     }),
     new MakerDMG({
       // https://github.com/electron/forge/issues/3712
-      appPath: "",
       icon: path.join(process.cwd(), "public", "assets", "icon.icns"),
       background: path.join(
         process.cwd(),
@@ -93,9 +92,10 @@ const config: ForgeConfig = {
           );
           console.info("Codesign verification succeeded.");
         } catch (verificationError) {
+          const verErr = verificationError as { stderr?: string };
           console.error(
             "Codesign verification failed:",
-            verificationError.stderr
+            verErr.stderr
           );
 
           // Attempt to re-sign the application if verification fails
@@ -110,7 +110,8 @@ const config: ForgeConfig = {
             );
             console.info("Re-verification succeeded after re-signing.");
           } catch (signingError) {
-            console.error("Re-signing failed:", signingError.stderr);
+            const signErr = signingError as { stderr?: string };
+            console.error("Re-signing failed:", signErr.stderr);
             throw new Error("Re-signing failed.");
           }
         }

@@ -1,17 +1,12 @@
+import tailwindcssAnimate from "tailwindcss-animate";
+import tailwindScrollbar from "tailwind-scrollbar";
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
-      // appRegion: {
-      //   drag: {
-      //     "-webkit-app-region": "drag",
-      //   },
-      //   noDrag: {
-      //     "-webkit-app-region": "no-drag",
-      //   },
-      // },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -72,7 +67,7 @@ module.exports = {
         },
       });
     },
-    require("tailwindcss-animate"),
-    require("tailwind-scrollbar"),
+    tailwindcssAnimate,
+    tailwindScrollbar,
   ],
 };

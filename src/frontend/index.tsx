@@ -13,7 +13,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {},
     mutations: {
-      onError: (error) =>
+      onError: (_error) =>
         toast({
           title: "Error",
           description: "Please report the issue on GitHub.",

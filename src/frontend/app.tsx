@@ -66,7 +66,7 @@ import { queryClient } from ".";
 window.bridge.onUpdateAvailable(() => {
   const NOTIFICATION_TITLE = "Downloading Update";
   const NOTIFICATION_BODY = "A new version of the app is available.";
-  const CLICK_MESSAGE = "Notification clicked!";
+  const _CLICK_MESSAGE = "Notification clicked!";
 
   toast({
     title: NOTIFICATION_TITLE,
@@ -83,7 +83,7 @@ window.bridge.onUpdateAvailable(() => {
 
 export function App() {
   const { toast } = useToast();
-  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [_isFirstTime, setIsFirstTime] = useState(false);
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
 
   const getAppVersionQuery = useQuery({
@@ -133,7 +133,7 @@ export function App() {
       });
     },
   });
-  const disableAllTasksMutation = useMutation({
+  const _disableAllTasksMutation = useMutation({
     mutationKey: ["disableAllTasks"],
     mutationFn: window.bridge.disableAllTasks,
     onSuccess: () => {
@@ -227,6 +227,7 @@ export function App() {
                   </TooltipContent>
                 </Tooltip>
               )}
+              {/* eslint-disable-next-line no-constant-binary-expression */}
               {false && <ModeToggle />}
               <Dialog
                 onOpenChange={(isOpen) => {
@@ -790,7 +791,7 @@ export function TaskRow({ task }: { task: SerializedScheduledTask }) {
           )}
         </span>
         <div className="flex items-center gap-2">
-          {task.scheduleType === "weekly" && task.daysOfWeek.length > 0 && (
+          {task.scheduleType === "weekly" && task.daysOfWeek && task.daysOfWeek.length > 0 && (
             <div className="flex gap-2 flex-wrap">
               {task.daysOfWeek.map((day) => (
                 <Badge key={day} variant="default" className="capitalize">
@@ -802,6 +803,7 @@ export function TaskRow({ task }: { task: SerializedScheduledTask }) {
         </div>
       </div>
       <div className="flex items-center gap-4">
+        {/* eslint-disable-next-line no-constant-binary-expression */}
         {false && (
           <Switch
             id={task.taskName}

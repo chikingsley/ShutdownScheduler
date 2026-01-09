@@ -1,21 +1,25 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "commonjs",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "strict": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
-
+    "isolatedModules": true,
     "jsx": "react-jsx",
-    "typeRoots": ["types/**/*.d.ts"],
     "paths": {
       "@/*": ["./src/*"]
-    }
-  }
+    },
+    "typeRoots": ["./types", "./node_modules/@types"]
+  },
+  "include": ["src/**/*", "types/**/*", "*.config.ts", "*.config.js"],
+  "exclude": ["node_modules", "dist", ".vite", "out"]
 }
