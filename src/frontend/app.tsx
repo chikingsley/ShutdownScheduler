@@ -1,12 +1,23 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  DayOfWeek,
+  BugIcon,
+  CopyIcon,
+  FolderOpenIcon,
+  GithubIcon,
+  InfoIcon,
+  LoaderIcon,
+  PlusIcon,
+  TerminalIcon,
+  Trash2Icon,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import {
+  type DayOfWeek,
   getFullDayName,
   githubRepository,
   githubRepositoryLatestRelease,
   scheduleFileName,
-  taskNamePrefix,
 } from "@/common";
-import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,21 +54,7 @@ import {
 } from "@/components/ui/tooltip";
 import { toast, useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { SerializedScheduledTask } from "@/preload";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  BugIcon,
-  CopyIcon,
-  ExternalLinkIcon,
-  FolderOpenIcon,
-  GithubIcon,
-  InfoIcon,
-  LoaderIcon,
-  PlusIcon,
-  TerminalIcon,
-  Trash2Icon,
-} from "lucide-react";
-import React, { useEffect, useState } from "react";
+import type { SerializedScheduledTask } from "@/preload";
 import { queryClient } from ".";
 
 // check psshutdown for sleep mode `psshutdown -d -t 0` https://superuser.com/a/395497
@@ -105,10 +102,6 @@ export function App() {
   const getTaskDatabaseFilePathQuery = useQuery({
     queryKey: ["getTaskDatabaseFilePath"],
     queryFn: window.bridge.getTaskDatabaseFilePath,
-  });
-  const openTaskSchedulerMutation = useMutation({
-    mutationKey: ["openTaskScheduler"],
-    mutationFn: window.bridge.openTaskScheduler,
   });
 
   const deleteAllTasksMutation = useMutation({
@@ -203,11 +196,11 @@ export function App() {
     <>
       {/* use this for center */}
       {/* <div className="min-h-dvh flex items-center mx-auto  container xflex justify-center xitems-center h-full xpy-8 px-4 md:px-20"> */}
-      <div className="mx-auto container xflex justify-center xitems-center h-full py-8 px-4 md:px-20">
+      <div className="xflex xitems-center container mx-auto h-full justify-center px-4 py-8 md:px-20">
         <div>
-          <div className="flex items-center justify-between flex-wrap gap-1 mb-8">
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-1">
             <div>
-              <h1 className="text-3xl font-bold">Schedule a task</h1>
+              <h1 className="font-bold text-3xl">Schedule a task</h1>
             </div>
             <div className="flex items-center gap-2">
               {!!getAppVersionQuery.data && (
@@ -215,8 +208,8 @@ export function App() {
                   <TooltipTrigger asChild>
                     <Button asChild variant="ghost">
                       <a
-                        target="_blank"
                         href={`${githubRepositoryLatestRelease}`}
+                        target="_blank"
                       >
                         {getAppVersionQuery.data}
                       </a>
@@ -227,8 +220,6 @@ export function App() {
                   </TooltipContent>
                 </Tooltip>
               )}
-              {/* eslint-disable-next-line no-constant-binary-expression */}
-              {false && <ModeToggle />}
               <Dialog
                 onOpenChange={(isOpen) => {
                   setIsInfoDialogOpen(isOpen);
@@ -236,7 +227,7 @@ export function App() {
                 open={isInfoDialogOpen}
               >
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button size="icon" variant="ghost">
                     <InfoIcon />
                   </Button>
                 </DialogTrigger>
@@ -254,30 +245,25 @@ export function App() {
                     </DialogDescription>
                   </DialogHeader>
                   <p className="text-sm">
-                    For Unix-like systems, it uses{" "}
+                    For macOS and Linux, it uses{" "}
                     <a
-                      target="_blank"
+                      className="underline"
                       href="https://www.geeksforgeeks.org/crontab-in-linux-with-examples/"
-                      className=" underline"
+                      rel="noopener"
+                      target="_blank"
                     >
                       Cron
                     </a>{" "}
                     for recurring tasks and{" "}
                     <a
-                      target="_blank"
+                      className="underline"
                       href="https://www.geeksforgeeks.org/at-command-in-linux-with-examples/"
-                      className=" underline"
+                      rel="noopener"
+                      target="_blank"
                     >
                       at
                     </a>{" "}
-                    for one-time tasks. <br /> For Windows, it uses the{" "}
-                    <a
-                      target="_blank"
-                      href="https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page"
-                      className=" underline"
-                    >
-                      Task Scheduler
-                    </a>
+                    for one-time tasks.
                   </p>
                   {getUserDataLocationQuery.data &&
                     getTaskDatabaseFilePathQuery.data && (
@@ -289,15 +275,13 @@ export function App() {
                           <div className="flex items-center gap-2">
                             <div className="grid flex-1 gap-2">
                               <Input
-                                value={getTaskDatabaseFilePathQuery.data}
                                 readOnly
+                                value={getTaskDatabaseFilePathQuery.data}
                               />
                             </div>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  type="submit"
-                                  size="sm"
                                   className="px-3"
                                   onClick={async () => {
                                     await navigator.clipboard.writeText(
@@ -309,6 +293,8 @@ export function App() {
                                         "Folder path copied to clipboard.",
                                     });
                                   }}
+                                  size="sm"
+                                  type="submit"
                                 >
                                   <span className="sr-only">Copy</span>
                                   <CopyIcon />
@@ -321,161 +307,142 @@ export function App() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  type="submit"
-                                  size="sm"
                                   className="px-3"
                                   onClick={async () => {
                                     await window.bridge.openFileExplorerInUserDataFolder();
                                   }}
+                                  size="sm"
+                                  type="submit"
                                 >
                                   <FolderOpenIcon />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Open in File Explorer</p>
+                                <p>Open Folder</p>
                               </TooltipContent>
                             </Tooltip>
                           </div>
                         </div>
                       </div>
                     )}
-                  {getOsQuery.data === "win32" && (
-                    <Button
-                      disabled={!!queryClient.isMutating()}
-                      onClick={async () => {
-                        await openTaskSchedulerMutation.mutateAsync();
-                      }}
-                      variant="secondary"
-                    >
-                      {openTaskSchedulerMutation.isPending ? (
-                        <LoaderIcon className="animate-spin" />
-                      ) : (
-                        <ExternalLinkIcon />
-                      )}
-                      Open Task Scheduler
-                    </Button>
-                  )}
-
-                  {getOsQuery.data !== "win32" && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Use the following commands in your Terminal to see the
-                        created tasks: <br />
-                      </p>
-                      <div className="flex flex-col gap-2 mt-4">
-                        <Label>List one time tasks</Label>
-                        <div className="flex items-center gap-2">
-                          <div className="grid flex-1 gap-2">
-                            <Input value="$ at -l" readOnly />
-                          </div>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                type="submit"
-                                size="sm"
-                                className="px-3"
-                                onClick={async () => {
-                                  await navigator.clipboard.writeText("at -l");
-                                  toast({
-                                    title: "Copied",
-                                    description:
-                                      "Command 'at -l' copied to clipboard.",
-                                  });
-                                }}
-                              >
-                                <span className="sr-only">Copy</span>
-                                <CopyIcon />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Copy to Clipboard</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          {getOsQuery.data === "darwin" && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  type="submit"
-                                  size="sm"
-                                  className="px-3"
-                                  onClick={async () => {
-                                    await window.bridge.runCommandInTerminal(
-                                      "at -l"
-                                    );
-                                  }}
-                                >
-                                  <TerminalIcon />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Run in Terminal</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
+                  <div>
+                    <p className="text-muted-foreground text-sm">
+                      Use the following commands in your Terminal to see the
+                      created tasks: <br />
+                    </p>
+                    <div className="mt-4 flex flex-col gap-2">
+                      <Label>List one time tasks</Label>
+                      <div className="flex items-center gap-2">
+                        <div className="grid flex-1 gap-2">
+                          <Input readOnly value="$ at -l" />
                         </div>
-                      </div>
-                      <div className="flex flex-col gap-2 mt-4">
-                        <Label>List recurring tasks</Label>
-                        <div className="flex items-center gap-2">
-                          <div className="grid flex-1 gap-2">
-                            <Input value="$ crontab -l" readOnly />
-                          </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              className="px-3"
+                              onClick={async () => {
+                                await navigator.clipboard.writeText("at -l");
+                                toast({
+                                  title: "Copied",
+                                  description:
+                                    "Command 'at -l' copied to clipboard.",
+                                });
+                              }}
+                              size="sm"
+                              type="submit"
+                            >
+                              <span className="sr-only">Copy</span>
+                              <CopyIcon />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Copy to Clipboard</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        {getOsQuery.data === "darwin" && (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                type="submit"
-                                size="sm"
                                 className="px-3"
                                 onClick={async () => {
-                                  await navigator.clipboard.writeText(
-                                    "crontab -l"
+                                  await window.bridge.runCommandInTerminal(
+                                    "at -l"
                                   );
-                                  toast({
-                                    title: "Copied",
-                                    description:
-                                      "Command 'crontab -l' copied to clipboard.",
-                                  });
                                 }}
+                                size="sm"
+                                type="submit"
                               >
-                                <span className="sr-only">Copy</span>
-                                <CopyIcon />
+                                <TerminalIcon />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Copy to Clipboard</p>
+                              <p>Run in Terminal</p>
                             </TooltipContent>
                           </Tooltip>
-                          {getOsQuery.data === "darwin" && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  type="submit"
-                                  size="sm"
-                                  className="px-3"
-                                  onClick={async () => {
-                                    await window.bridge.runCommandInTerminal(
-                                      "crontab -l"
-                                    );
-                                  }}
-                                >
-                                  <TerminalIcon />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Run in Terminal</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
-                  )}
+                    <div className="mt-4 flex flex-col gap-2">
+                      <Label>List recurring tasks</Label>
+                      <div className="flex items-center gap-2">
+                        <div className="grid flex-1 gap-2">
+                          <Input readOnly value="$ crontab -l" />
+                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              className="px-3"
+                              onClick={async () => {
+                                await navigator.clipboard.writeText(
+                                  "crontab -l"
+                                );
+                                toast({
+                                  title: "Copied",
+                                  description:
+                                    "Command 'crontab -l' copied to clipboard.",
+                                });
+                              }}
+                              size="sm"
+                              type="submit"
+                            >
+                              <span className="sr-only">Copy</span>
+                              <CopyIcon />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Copy to Clipboard</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        {getOsQuery.data === "darwin" && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                className="px-3"
+                                onClick={async () => {
+                                  await window.bridge.runCommandInTerminal(
+                                    "crontab -l"
+                                  );
+                                }}
+                                size="sm"
+                                type="submit"
+                              >
+                                <TerminalIcon />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Run in Terminal</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </DialogContent>
               </Dialog>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button asChild variant="ghost" size="icon">
-                    <a target="_blank" href={githubRepository}>
+                  <Button asChild size="icon" variant="ghost">
+                    <a href={githubRepository} target="_blank">
                       <GithubIcon />
                     </a>
                   </Button>
@@ -536,17 +503,17 @@ export function App() {
 
               {frequency === "weekly" && (
                 <div>
-                  <div className="text-xl font-bold mb-4">Days of the Week</div>
-                  <div className="flex flex-wrap gap-4 backdrop-blur rounded items-center">
+                  <div className="mb-4 font-bold text-xl">Days of the Week</div>
+                  <div className="flex flex-wrap items-center gap-4 rounded backdrop-blur">
                     {/* <div className="bg-white/5 flex flex-wrap gap-4 p-4 backdrop-blur rounded"> */}
                     {days.map((day) => (
                       <div
-                        key={day.day}
                         className="flex items-center space-x-2"
+                        key={day.day}
                       >
                         <Switch
-                          id={day.day}
                           checked={day.selected}
+                          id={day.day}
                           onCheckedChange={() => handleDaySelect(day.day)}
                         />
                         <Label htmlFor={day.day}>
@@ -559,48 +526,48 @@ export function App() {
               )}
 
               <div>
-                <div className="text-xl font-bold mb-4">Delay</div>
-                <div className="flex gap-4 items-center">
+                <div className="mb-4 font-bold text-xl">Delay</div>
+                <div className="flex items-center gap-4">
                   <div className="grid w-full items-center gap-2">
                     <Label htmlFor="delay_minutes">Minutes</Label>
                     <Input
-                      min={0}
-                      type="number"
                       id="delay_minutes"
-                      placeholder="Specify a delay in minutes"
-                      value={delayInMinutes}
+                      min={0}
                       onChange={(e) =>
                         setDelayInMinutes(Number(e.target.value))
                       }
+                      placeholder="Specify a delay in minutes"
+                      type="number"
+                      value={delayInMinutes}
                     />
                   </div>
                   <div className="grid w-full items-center gap-2">
                     <Label htmlFor="delay_hours">Hours</Label>
                     <Input
-                      min={0}
-                      type="number"
                       id="delay_hours"
-                      placeholder="Specify a delay in hours"
-                      value={delayInHours}
+                      min={0}
                       onChange={(e) => setDelayInHours(Number(e.target.value))}
+                      placeholder="Specify a delay in hours"
+                      type="number"
+                      value={delayInHours}
                     />
                   </div>
                   <div className="grid w-full items-center gap-2">
                     <Label htmlFor="delay_days">Days</Label>
                     <Input
-                      min={0}
-                      type="number"
                       id="delay_days"
-                      placeholder="Specify a delay in days"
-                      value={delayInDays}
+                      min={0}
                       onChange={(e) => setDelayInDays(Number(e.target.value))}
+                      placeholder="Specify a delay in days"
+                      type="number"
+                      value={delayInDays}
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="justify-end flex gap-2">
+            <div className="flex justify-end gap-2">
               <Button
                 disabled={!!queryClient.isMutating() || !totalDelay}
                 onClick={async () => {
@@ -608,9 +575,9 @@ export function App() {
                     action: selectedAction,
                     scheduleType: frequency,
                     daysOfWeek: selectedDays,
-                    delayInMinutes: delayInMinutes,
-                    delayInHours: delayInHours,
-                    delayInDays: delayInDays,
+                    delayInMinutes,
+                    delayInHours,
+                    delayInDays,
                   });
                 }}
               >
@@ -624,51 +591,26 @@ export function App() {
             </div>
           </div>
 
-          <Card className="mt-8 bg-gray-600/20 xborder-none">
+          <Card className="xborder-none mt-8 bg-gray-600/20">
             <CardHeader>
               <div
-                className={cn("flex items-center justify-between flex-wrap")}
+                className={cn("flex flex-wrap items-center justify-between")}
               >
                 <div className={cn("flex flex-col space-y-1.5")}>
                   <CardTitle>Schedule</CardTitle>
                   <CardDescription>Manage your schedule here.</CardDescription>
                 </div>
-                <div className="justify-end flex gap-2 flex-wrap">
-                  {getOsQuery.data === "win32" && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          disabled={!!queryClient.isMutating()}
-                          onClick={async () => {
-                            await openTaskSchedulerMutation.mutateAsync();
-                          }}
-                          variant="ghost"
-                        >
-                          {openTaskSchedulerMutation.isPending ? (
-                            <LoaderIcon className="animate-spin" />
-                          ) : (
-                            <ExternalLinkIcon />
-                          )}
-                          Open Task Scheduler
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Tasks are prefixed by `{taskNamePrefix}`</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                  {getOsQuery.data !== "win32" && (
-                    <Button
-                      disabled={!!queryClient.isMutating()}
-                      onClick={async () => {
-                        setIsInfoDialogOpen(true);
-                      }}
-                      variant="ghost"
-                    >
-                      <BugIcon />
-                      Debug
-                    </Button>
-                  )}
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button
+                    disabled={!!queryClient.isMutating()}
+                    onClick={() => {
+                      setIsInfoDialogOpen(true);
+                    }}
+                    variant="ghost"
+                  >
+                    <BugIcon />
+                    Debug
+                  </Button>
                   <Button
                     disabled={
                       !!queryClient.isMutating() || !getTasksQuery.data?.length
@@ -709,7 +651,7 @@ export function App() {
               {sortedTasks.map((task) => (
                 <React.Fragment key={task.taskName}>
                   <TaskRow task={task} />
-                  <div className="border-b last:border-b-0 last:hidden"></div>
+                  <div className="border-b last:hidden last:border-b-0" />
                 </React.Fragment>
               ))}
             </CardContent>
@@ -745,28 +687,6 @@ export function TaskRow({ task }: { task: SerializedScheduledTask }) {
       });
     },
   });
-  const enableTaskMutation = useMutation({
-    mutationKey: ["enableTask"],
-    mutationFn: window.bridge.enableTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({
-        title: "Task Enabled",
-        description: "Task has been enabled successfully.",
-      });
-    },
-  });
-  const disableTaskMutation = useMutation({
-    mutationKey: ["disableTask"],
-    mutationFn: window.bridge.disableTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({
-        title: "Task Disabled",
-        description: "Task has been disabled successfully.",
-      });
-    },
-  });
 
   return (
     <div className="flex items-center justify-between gap-x-2">
@@ -791,36 +711,20 @@ export function TaskRow({ task }: { task: SerializedScheduledTask }) {
           )}
         </span>
         <div className="flex items-center gap-2">
-          {task.scheduleType === "weekly" && task.daysOfWeek && task.daysOfWeek.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {task.daysOfWeek.map((day) => (
-                <Badge key={day} variant="default" className="capitalize">
-                  {getFullDayName(day)}
-                </Badge>
-              ))}
-            </div>
-          )}
+          {task.scheduleType === "weekly" &&
+            task.daysOfWeek &&
+            task.daysOfWeek.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {task.daysOfWeek.map((day) => (
+                  <Badge className="capitalize" key={day} variant="default">
+                    {getFullDayName(day)}
+                  </Badge>
+                ))}
+              </div>
+            )}
         </div>
       </div>
       <div className="flex items-center gap-4">
-        {/* eslint-disable-next-line no-constant-binary-expression */}
-        {false && (
-          <Switch
-            id={task.taskName}
-            checked={task.enabled}
-            onCheckedChange={async () => {
-              if (!task.enabled) {
-                await enableTaskMutation.mutateAsync({
-                  taskName: task.taskName,
-                });
-              } else {
-                await disableTaskMutation.mutateAsync({
-                  taskName: task.taskName,
-                });
-              }
-            }}
-          />
-        )}
         <Button
           disabled={!!queryClient.isMutating()}
           onClick={async () => {

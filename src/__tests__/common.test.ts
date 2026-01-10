@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { getFullDayName, taskNamePrefix, scheduleFileName, DayOfWeek } from "../common";
+import {
+  type DayOfWeek,
+  getFullDayName,
+  scheduleFileName,
+  taskNamePrefix,
+} from "../common";
 
 describe("common module", () => {
   describe("taskNamePrefix", () => {
@@ -54,8 +59,24 @@ describe("common module", () => {
     });
 
     test("should return correct day names for all days", () => {
-      const days: DayOfWeek[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-      const expectedNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const days: DayOfWeek[] = [
+        "mon",
+        "tue",
+        "wed",
+        "thu",
+        "fri",
+        "sat",
+        "sun",
+      ];
+      const expectedNames = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ];
 
       days.forEach((day, index) => {
         expect(getFullDayName(day)).toBe(expectedNames[index]);
@@ -65,7 +86,15 @@ describe("common module", () => {
 
   describe("DayOfWeek type", () => {
     test("should accept valid day abbreviations", () => {
-      const validDays: DayOfWeek[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+      const validDays: DayOfWeek[] = [
+        "mon",
+        "tue",
+        "wed",
+        "thu",
+        "fri",
+        "sat",
+        "sun",
+      ];
       expect(validDays.length).toBe(7);
     });
   });

@@ -1,5 +1,5 @@
-import tailwindcssAnimate from "tailwindcss-animate";
 import tailwindScrollbar from "tailwind-scrollbar";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -57,7 +57,7 @@ export default {
     },
   },
   plugins: [
-    function ({ addUtilities }) {
+    ({ addUtilities }) => {
       addUtilities({
         ".app-region-drag": {
           "-webkit-app-region": "drag",

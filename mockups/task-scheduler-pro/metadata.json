@@ -1,0 +1,5 @@
+{
+  "name": "Task Scheduler Pro",
+  "description": "A sophisticated scheduling dashboard for system actions (shutdown, restart) and personal tasks (meetings, reminders) with natural language processing powered by Gemini.",
+  "requestFramePermissions": []
+}

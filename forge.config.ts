@@ -1,16 +1,13 @@
-import type { ForgeConfig } from "@electron-forge/shared-types";
-import { MakerSquirrel } from "@electron-forge/maker-squirrel";
+import { exec } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
+import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerDMG } from "@electron-forge/maker-dmg";
-import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
-import { FuseV1Options, FuseVersion } from "@electron/fuses";
-import { exec } from "child_process";
-import path from "path";
-import os from "os";
-import { PublisherGitHubConfig } from "@electron-forge/publisher-github";
-
-// PS: app doesn't launch from shortcut on windows when packaged with squirrel and version set to 0.0.0
+import { VitePlugin } from "@electron-forge/plugin-vite";
+import type { PublisherGitHubConfig } from "@electron-forge/publisher-github";
+import type { ForgeConfig } from "@electron-forge/shared-types";
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -24,11 +21,6 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({
-      setupIcon: path.join(process.cwd(), "public", "assets", "icon.ico"),
-      iconUrl:
-        "https://raw.githubusercontent.com/hichemfantar/ShutdownScheduler/main/public/assets/icon.ico",
-    }),
     // new MakerZIP({}, ["darwin"]),
     // new MakerRpm({}),
     new MakerDeb({
@@ -61,7 +53,7 @@ const config: ForgeConfig = {
     //   console.log(forgeConfig);
     //   console.log(resources);
     // },
-    postPackage: async (forgeConfig, options) => {
+    postPackage: async (_forgeConfig, options) => {
       console.info("Packages built at:", options.outputPaths);
       const appPath = path.join(
         options.outputPaths[0],
@@ -93,10 +85,7 @@ const config: ForgeConfig = {
           console.info("Codesign verification succeeded.");
         } catch (verificationError) {
           const verErr = verificationError as { stderr?: string };
-          console.error(
-            "Codesign verification failed:",
-            verErr.stderr
-          );
+          console.error("Codesign verification failed:", verErr.stderr);
 
           // Attempt to re-sign the application if verification fails
           try {

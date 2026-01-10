@@ -1,13 +1,20 @@
-import { exec, ExecException, ExecOptions, execSync } from "child_process";
+import {
+  type ExecException,
+  type ExecOptions,
+  exec,
+  execSync,
+} from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
 import { format } from "date-fns";
 import { contextBridge, ipcRenderer } from "electron";
-import fs from "fs";
-import os from "os";
-import { DayOfWeek, taskNamePrefix } from "./common";
+import { type DayOfWeek, taskNamePrefix } from "./common";
 
 // Helper to safely get error message from unknown errors
 function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
+  if (error instanceof Error) {
+    return error.message;
+  }
   if (typeof error === "object" && error !== null && "message" in error) {
     return String((error as { message: unknown }).message);
   }
@@ -27,7 +34,10 @@ export interface SerializedScheduledTask {
   atJobId?: string;
 }
 
-export type ExecAsyncError = { error: ExecException; stderr: string };
+export interface ExecAsyncError {
+  error: ExecException;
+  stderr: string;
+}
 const execAsync = (command: string, options?: ExecOptions): Promise<string> => {
   return new Promise((resolve, reject) => {
     exec(
@@ -59,7 +69,7 @@ const taskDatabaseFilePath = async (): Promise<string> => {
 const isWindows = os.platform() === "win32";
 const isMacOS = os.platform() === "darwin";
 const isLinux = os.platform() === "linux";
-const isUnix = !isMacOS && !isLinux && !isWindows;
+const isUnix = !(isMacOS || isLinux || isWindows);
 
 // Function to get the system short date format
 function getWindowsSystemShortDateFormat(): string {
@@ -119,7 +129,7 @@ const formatCronTime = (timestamp: number): string => {
 
 const enableCronTask = async (taskName: string) => {
   try {
-    const stdout = await execAsync(`crontab -l`);
+    const stdout = await execAsync("crontab -l");
     // Enable cron job by uncommenting the line after the task name comment
     const updatedCron = stdout
       .split("\n")
@@ -153,7 +163,7 @@ const enableCronTask = async (taskName: string) => {
 
 const disableCronTask = async (taskName: string) => {
   try {
-    const stdout = await execAsync(`crontab -l`);
+    const stdout = await execAsync("crontab -l");
     // Disable cron job by commenting out the line after the task name comment
     const updatedCron = stdout
       .split("\n")
@@ -190,7 +200,9 @@ const deleteAtTask = async (jobId: string) => {
     await execAsync(`atrm ${jobId}`);
     console.log(`At job with ID ${jobId} deleted.`);
   } catch (error) {
-    console.error(`Error deleting at job with ID ${jobId}: ${getErrorMessage(error)}`);
+    console.error(
+      `Error deleting at job with ID ${jobId}: ${getErrorMessage(error)}`
+    );
     // throw new Error(error);
   }
 };
@@ -247,7 +259,7 @@ const createTask = async ({
 
   if (isWindows) {
     // Windows scheduling with schtasks remains the same
-    const command = action === "shutdown" ? `shutdown -s -f` : `shutdown -r -f`;
+    const command = action === "shutdown" ? "shutdown -s -f" : "shutdown -r -f";
 
     const windowsScheduledDate = formatWindowsScheduledDate(timestamp);
 
@@ -459,25 +471,21 @@ const deleteTask = async ({
         );
         // throw new Error(error);
       }
+    } else if (atJobId) {
+      await deleteAtTask(atJobId);
+      schedules.splice(taskIndex, 1);
+      await saveSchedules(schedules);
     } else {
-      if (atJobId) {
-        await deleteAtTask(atJobId);
+      try {
+        await execAsync(`crontab -l | sed '/# ${taskName}/,/^$/d' | crontab -`);
         schedules.splice(taskIndex, 1);
         await saveSchedules(schedules);
-      } else {
-        try {
-          await execAsync(
-            `crontab -l | sed '/# ${taskName}/,/^$/d' | crontab -`
-          );
-          schedules.splice(taskIndex, 1);
-          await saveSchedules(schedules);
-          console.log(`Cron job canceled for ${taskName}`);
-        } catch (error) {
-          console.error(
-            `Error removing cron job for ${taskName}: ${getErrorMessage(error)}`
-          );
-          // throw new Error(error);
-        }
+        console.log(`Cron job canceled for ${taskName}`);
+      } catch (error) {
+        console.error(
+          `Error removing cron job for ${taskName}: ${getErrorMessage(error)}`
+        );
+        // throw new Error(error);
       }
     }
   } else {
@@ -512,7 +520,7 @@ const deleteAllTasks = async () => {
 
     try {
       // delete all cron jobs
-      const stdout = await execAsync(`crontab -l`);
+      const stdout = await execAsync("crontab -l");
 
       let skipNext = false;
       const updatedCron = stdout
@@ -565,7 +573,9 @@ const enableTask = async ({ taskName }: { taskName: string }) => {
       await saveSchedules(schedules);
       console.log(`Task ${taskName} enabled successfully.`);
     } catch (error) {
-      console.error(`Error enabling task ${taskName}: ${getErrorMessage(error)}`);
+      console.error(
+        `Error enabling task ${taskName}: ${getErrorMessage(error)}`
+      );
       // throw new Error(error);
       return;
     }
@@ -592,7 +602,9 @@ const disableTask = async ({ taskName }: { taskName: string }) => {
       await saveSchedules(schedules);
       console.log(`Task ${taskName} disabled successfully.`);
     } catch (error) {
-      console.error(`Error disabling task ${taskName}: ${getErrorMessage(error)}`);
+      console.error(
+        `Error disabling task ${taskName}: ${getErrorMessage(error)}`
+      );
       // throw new Error(error);
       return;
     }
@@ -717,7 +729,14 @@ end tell
     return await execAsync(`osascript -e '${appleScript}'`);
   },
 
-  // createTask: (args) => ipcRenderer.invoke("createTask", args),
+  // Tray APIs
+  tray: {
+    updateTitle: (title: string) =>
+      ipcRenderer.invoke("tray:updateTitle", title),
+    updateMenu: (
+      tasks: Array<{ name: string; timeRemaining: string; action: string }>
+    ) => ipcRenderer.invoke("tray:updateMenu", tasks),
+  },
 };
 
 // Expose the API to the renderer process

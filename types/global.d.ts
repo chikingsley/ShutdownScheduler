@@ -8,5 +8,3 @@ declare global {
     bridge: typeof bridgeApi;
   }
 }
-
-export {};

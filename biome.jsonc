@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite/biome/core"],
+  "files": {
+    "includes": ["!mockups", "!src/preload.old.ts", "!src/preload.json.ts"]
+  },
+  "linter": {
+    "rules": {
+      "performance": {
+        "noNamespaceImport": "off"
+      },
+      "suspicious": {
+        "noUnknownAtRules": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/components/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    }
+  ]
+}

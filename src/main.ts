@@ -1,3 +1,4 @@
+import path from "node:path";
 import {
   app,
   autoUpdater,
@@ -6,12 +7,19 @@ import {
   nativeTheme,
   shell,
 } from "electron";
-import started from "electron-squirrel-startup";
-import path from "path";
 import { updateElectronApp } from "update-electron-app";
 import { scheduleFileName } from "./common";
+import {
+  createTray,
+  destroyTray,
+  updateTrayMenu,
+  updateTrayTitle,
+} from "./tray";
+
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
+
+let mainWindow: BrowserWindow | null = null;
 
 if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) {
   updateElectronApp({
@@ -20,54 +28,28 @@ if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) {
   });
 }
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (started) {
-  app.quit();
-}
-
-const createWindow = () => {
-  // setInterval(() => {
-  //   const text = clipboard.readText();
-  //   // console.log(text);
-  // }, 1000);
-
+const createWindow = (): BrowserWindow => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    // icon: path.join(process.cwd(), "icon.icns"),
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
     fullscreenable: false,
-    autoHideMenuBar: MAIN_WINDOW_VITE_DEV_SERVER_URL ? false : true,
+    autoHideMenuBar: !MAIN_WINDOW_VITE_DEV_SERVER_URL,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       sandbox: false,
-      // scrollBounce: true,
     },
-    // useContentSize: true,
-    // backgroundColor: "#00000090",
-    // backgroundColor: "#00000000",
-    // backgroundColor: "transparent",
-    // transparent: true,
-    // vibrancy: "under-window", // on MacOS
-    // vibrancy: "under-page", // on MacOS
-    // titleBarOverlay: false,
-    // titleBarStyle: "hidden",
-    // transparent: true,
-    // frame: false,
   });
+
   autoUpdater.on("update-available", () => {
-    mainWindow.webContents.send("update-available");
+    mainWindow?.webContents.send("update-available");
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    // TODO: add check to only load external links in the browser, currently all links are opened in the external browser
-    // TODO: create a whitelist of domains that can be opened in the app
-    shell.openExternal(details.url); // Open URL in user's browser.
-    return { action: "deny" }; // Prevent the app from opening the URL.
+    shell.openExternal(details.url);
+    return { action: "deny" };
   });
-  // mainWindow.maximize();
 
-  // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
@@ -77,9 +59,14 @@ const createWindow = () => {
   }
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    // Open the DevTools.
     mainWindow.webContents.openDevTools();
   }
+
+  // Create system tray
+  const isDev = !!MAIN_WINDOW_VITE_DEV_SERVER_URL;
+  createTray({ mainWindow, isDev });
+
+  return mainWindow;
 };
 
 ipcMain.handle("dark-mode:system", () => {
@@ -92,7 +79,7 @@ ipcMain.handle("dark-mode:system", () => {
 app.on("ready", createWindow);
 app.whenReady().then(() => {
   const isDev = !!MAIN_WINDOW_VITE_DEV_SERVER_URL;
-  ipcMain.handle("isDev", (e, args) => [
+  ipcMain.handle("isDev", (_e, args) => [
     !!MAIN_WINDOW_VITE_DEV_SERVER_URL,
     args,
   ]);
@@ -108,11 +95,28 @@ app.whenReady().then(() => {
   ipcMain.handle("getAppVersion", () => {
     return app.getVersion();
   });
-  // ipcMain.handle("createTask", async (e, args) => {
-  //   console.log(args);
 
-  //   return createTask(args);
-  // });
+  // Tray IPC handlers
+  ipcMain.handle("tray:updateTitle", (_e, title: string) => {
+    updateTrayTitle(title);
+  });
+
+  ipcMain.handle(
+    "tray:updateMenu",
+    (
+      _e,
+      tasks: Array<{ name: string; timeRemaining: string; action: string }>
+    ) => {
+      if (mainWindow) {
+        updateTrayMenu(mainWindow, tasks);
+      }
+    }
+  );
+});
+
+// Clean up tray on quit
+app.on("before-quit", () => {
+  destroyTray();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

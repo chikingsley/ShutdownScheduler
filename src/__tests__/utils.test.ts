@@ -17,7 +17,9 @@ describe("cn utility function", () => {
   test("should handle conditional classes", () => {
     const isActive = true;
     const isDisabled = false;
-    expect(cn("base", isActive && "active", isDisabled && "disabled")).toBe("base active");
+    expect(cn("base", isActive && "active", isDisabled && "disabled")).toBe(
+      "base active"
+    );
   });
 
   test("should merge tailwind classes correctly", () => {
@@ -34,7 +36,9 @@ describe("cn utility function", () => {
   });
 
   test("should handle mixed inputs", () => {
-    expect(cn("foo", ["bar", "baz"], { qux: true, quux: false })).toBe("foo bar baz qux");
+    expect(cn("foo", ["bar", "baz"], { qux: true, quux: false })).toBe(
+      "foo bar baz qux"
+    );
   });
 
   test("should handle duplicate classes in input", () => {

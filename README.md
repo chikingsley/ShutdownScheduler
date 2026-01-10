@@ -1,17 +1,12 @@
 # Shutdown Scheduler
 
-An Electron-powered desktop app for scheduling automated shutdown and reboot tasks. Built with Vite, React, and TypeScript, it supports Windows, Linux, macOS, and Unix-like systems. The app uses Task Scheduler on Windows and Cron jobs on Linux/Unix for seamless, platform-specific automation.
-
-## Screenshots
-
-![Main Screen](demo.png)
-_Main interface._
+An Electron-powered desktop app for scheduling automated shutdown and reboot tasks. Built with Vite, React, and TypeScript, it supports macOS, Linux, and Unix-like systems. The app uses `at` for one-time tasks and cron jobs for recurring schedules.
 
 ## Features
 
 - **Flexible Scheduling**: Set shutdowns or reboots to occur once, daily, or weekly.
 - **Task Management**: Enable, disable, delete individual or all tasks.
-- **Cross-Platform**: Compatible with Windows, Linux, Unix-like systems, and macOS.
+- **Cross-Platform**: Compatible with macOS, Linux, and Unix-like systems.
 - **User-Friendly**: Tasks managed via JSON, keeping a record of all scheduled activities.
 
 ## Technologies
@@ -24,7 +19,7 @@ _Main interface._
 
 ## Prerequisites
 
-- **Node.js** and **npm**
+- **Bun**
 - **Electron**
 
 ## Setup
@@ -34,25 +29,25 @@ _Main interface._
    ```bash
    git clone https://github.com/hichemfantar/ShutdownScheduler
    cd ShutdownScheduler
-   npm install
+   bun install
    ```
 
 2. **Run the app in development mode**:
 
    ```bash
-   npm run dev
+   bun run dev
    ```
 
 3. **Generate executable**:
 
    ```bash
-   npm run package
+   bun run package
    ```
 
 4. **Generate installer**:
 
    ```bash
-   npm run make
+   bun run make
    ```
 
 ## Usage
@@ -63,19 +58,18 @@ _Main interface._
 
 ## Platform-Specific Details
 
-- **Windows**: Utilizes Windows Task Scheduler to set up shutdown/reboot tasks.
-- **Linux/Unix/macOS**: Uses Cron jobs for scheduling tasks.
+- **macOS/Linux/Unix**: Uses `at` for one-time tasks and cron jobs for recurring schedules.
 
 ## Architecture
 
-When building a shutdown timer across Windows, Linux, and Mac in an Electron app, you have two main options:
+When building a shutdown timer across macOS, Linux, and Unix in an Electron app, you have two main options:
 
-1. **Using OS-Specific Schedulers** (e.g., Task Scheduler on Windows, Cron on Unix-based systems)
+1. **Using OS-Specific Schedulers** (e.g., `at` and `cron`)
 2. **Using a Node.js Scheduler** (e.g., `node-schedule` or `node-cron`)
 
 Each approach has its advantages and trade-offs. Here’s a breakdown to help you choose the best approach.
 
-## 1. (current approach) Using OS-Specific Schedulers (Task Scheduler on Windows, Cron on Unix)
+## 1. (current approach) Using OS-Specific Schedulers (`at` and `cron`)
 
 ### Pros
 
@@ -85,8 +79,8 @@ Each approach has its advantages and trade-offs. Here’s a breakdown to help yo
 
 ### Cons
 
-- **Complex Cross-Platform Code**: Managing OS-specific schedulers increases code complexity, requiring separate logic for Windows (Task Scheduler) and Unix-based systems (Cron).
-- **Permissions**: Setting up and modifying tasks in Task Scheduler and Cron may require elevated permissions, adding complexity to installation and operation.
+- **Complex Cross-Platform Code**: Managing OS-specific schedulers increases code complexity, requiring separate logic for Unix-based systems.
+- **Permissions**: Setting up and modifying tasks in `at` and `cron` may require elevated permissions, adding complexity to installation and operation.
 
 ### Recommended for
 
@@ -115,7 +109,7 @@ Situations where simplicity and cross-platform support in the codebase are prior
 
 ## Conclusion
 
-If you need a reliable, persistent shutdown scheduler that works even when the app isn’t running, **using OS-specific schedulers (Task Scheduler and Cron) is generally the better choice**. However, if you prefer a unified codebase and can ensure the app remains open, **a Node.js scheduler would be simpler to implement and maintain**.
+If you need a reliable, persistent shutdown scheduler that works even when the app isn’t running, **using OS-specific schedulers (`at` and `cron`) is generally the better choice**. However, if you prefer a unified codebase and can ensure the app remains open, **a Node.js scheduler would be simpler to implement and maintain**.
 
 ### Hybrid Approach
 

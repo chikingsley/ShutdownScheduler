@@ -1,11 +1,11 @@
-import { createRoot } from "react-dom/client";
-import { App } from "./app";
-import { ThemeProvider } from "@/components/theme/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { createRoot } from "react-dom/client";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "@/hooks/use-toast";
+import { App } from "./app";
 
 const container = document.getElementById("root");
 
