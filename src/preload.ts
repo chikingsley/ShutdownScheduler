@@ -10,6 +10,10 @@ import { format } from "date-fns";
 import { contextBridge, ipcRenderer } from "electron";
 import { type DayOfWeek, taskNamePrefix } from "./common";
 
+// Top-level regex patterns for performance
+const WINDOWS_DATE_FORMAT_REGEX = /sShortDate\s+REG_SZ\s+(.+)/;
+const CRON_COMMENT_REGEX = /^#\s*/;
+
 // Helper to safely get error message from unknown errors
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -76,7 +80,7 @@ function getWindowsSystemShortDateFormat(): string {
   const command = `reg query "HKEY_CURRENT_USER\\Control Panel\\International" /v sShortDate`;
   try {
     const output = execSync(command, { encoding: "utf-8" });
-    const match = output.match(/sShortDate\s+REG_SZ\s+(.+)/);
+    const match = output.match(WINDOWS_DATE_FORMAT_REGEX);
     return match ? match[1].trim() : "MM/dd/yyyy"; // Fallback to a default format
   } catch (error) {
     console.error("Error fetching system date format:", error);
@@ -139,7 +143,7 @@ const enableCronTask = async (taskName: string) => {
           line.trim() === `# ${taskName}` &&
           lines[index + 1]?.startsWith("#")
         ) {
-          lines[index + 1] = lines[index + 1].replace(/^#\s*/, ""); // Uncomment the cron line
+          lines[index + 1] = lines[index + 1].replace(CRON_COMMENT_REGEX, ""); // Uncomment the cron line
         }
         return line;
       })
@@ -684,7 +688,7 @@ export const bridgeApi = {
   openTaskScheduler: () => execAsync("start taskschd.msc"),
   openFileExplorerInUserDataFolder: async () => {
     const loc: string = await ipcRenderer.invoke("getUserDataLocation");
-    let command;
+    let command: string;
     if (isWindows) {
       command = `start explorer.exe "${loc}"`;
       // command = `start "${loc}"`;
